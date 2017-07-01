@@ -27,14 +27,14 @@ let VERISURE_CALLS = {};
 let VERISURE_DEVICE_NAMES = []
 
 
-const getVerisureInstallation = function(config, callback) {
-  
+const getVerisureInstallation = function(config, log, callback) {
   verisure.auth(config.email, config.password, function(err, token) {
     if(err) return callback(err);
     VERISURE_TOKEN = token;
 
     verisure.installations(token, config.email, function(err, installations) {
       if(err) return callback(err);
+      log("Installations: " + JSON.stringify(installations));
       VERISURE_INSTALLATION = installations[0];
       callback();
     });
@@ -85,11 +85,12 @@ const VerisurePlatform = function(log, config, api) {
   this.log = log;
   this.config = config;
   this.accessories = function(callback) {
-    getVerisureInstallation(config, function(err) {
+    getVerisureInstallation(config, log, function(err) {
       if(err) return log.error(err);
 
       verisure.overview(VERISURE_TOKEN, VERISURE_INSTALLATION, function(err, overview) {
         if(err) return log.error(err);
+        log("Overview: " + JSON.stringify(overview));
         let devices = overview.climateValues.map(function(device) {
           const deviceName = DEVICE_TYPES[device.deviceType] || device.deviceType
           return new VerisureAccessory(log, {
